@@ -11,6 +11,9 @@ jobs:
           cache: npm
       - name: Install
         run: npm ci
+      - name: Create .env
+        # The tests and the app both read RINGCENTRAL_ENGAGE_VERIFY_TOKEN through dotenv.
+        run: cp .env.sample .env
       - name: Test
         run: npm test
         env:
