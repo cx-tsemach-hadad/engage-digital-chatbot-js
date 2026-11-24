@@ -5,6 +5,9 @@ import pack from '../package.json'
 import { initApp } from '../src/app'
 import * as config from '../example-bots/auto-reply-all'
 import request from 'supertest'
+import fs from 'fs'
+import os from 'os'
+import path from 'path'
 
 require('dotenv').config()
 
@@ -55,5 +58,21 @@ describe(pack.name, () => {
       .get('/test')
     expect(res.statusCode).toEqual(200)
     expect(res.text).toEqual('server running')
+  })
+  it('transcript download should return file content', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'transcripts-'))
+    fs.writeFileSync(path.join(dir, 'chat-1.txt'), 'hello from the chat')
+    process.env.RINGCENTRAL_ENGAGE_TRANSCRIPTS_DIR = dir
+    const res = await request(app)
+      .get('/rc/transcripts/chat-1.txt')
+    expect(res.statusCode).toEqual(200)
+    expect(res.text).toEqual('hello from the chat')
+  })
+  it('transcript download should return 404 for missing file', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'transcripts-'))
+    process.env.RINGCENTRAL_ENGAGE_TRANSCRIPTS_DIR = dir
+    const res = await request(app)
+      .get('/rc/transcripts/missing.txt')
+    expect(res.statusCode).toEqual(404)
   })
 })
